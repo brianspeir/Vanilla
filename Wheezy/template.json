@@ -1,0 +1,110 @@
+{
+
+    "variables": {
+        "distribution": "",
+        "codename": "",
+        "release": "",
+        "architecture": "",
+        "username": "",
+        "user_password": "",
+        "public_key_url": ""
+    },
+
+    "builders": [
+        {
+            "type": "virtualbox",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/7.1.0/amd64/iso-cd/debian-7.1.0-amd64-netinst.iso",
+            "iso_checksum": "62232b8adc281c04f9985e4a1541481a468b3b2ca1702a0dd7f62fcf56ef101b",
+            "iso_checksum_type": "sha256",
+            "ssh_username": "{{ user `username` }}",
+
+            "boot_command": [
+                "<esc><wait>",
+                "auto url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+                "<return>"
+            ],
+            "guest_os_type": "Debian_64",
+            "guest_additions_attach": true,
+            "http_directory": "http",
+            "hard_drive_interface": "sata",
+            "headless": false,
+            "shutdown_command": "echo {{ user `user_password` }} | sudo -S shutdown -hP now",
+            "ssh_password": "{{ user `user_password` }}",
+            "vboxmanage": [
+                [
+                    "modifyvm",
+                    "{{ .Name }}",
+                    "--memory",
+                    "615"
+                ],
+                [
+                    "modifyvm",
+                    "{{ .Name }}",
+                    "--cpus",
+                    "1"
+                ],
+                [
+                    "modifyvm",
+                    "{{ .Name }}",
+                    "--audio",
+                    "none"
+                ],
+                [
+                    "modifyvm",
+                    "{{ .Name }}",
+                    "--usb",
+                    "off"
+                ]
+            ],
+            "virtualbox_version_file": "/tmp/vbox_version",
+            "vm_name": "{{ user `distribution` }}-{{ user `codename` }}-{{ user `release` }}-{{ user `architecture` }}"
+        }
+    ],
+
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [ "sleep 20" ]
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/common/apt.sh",
+                "scripts/common/boot.sh",
+                "scripts/common/security.sh"
+                ],
+            "execute_command": "echo {{ user `user_password` }} | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/virtualbox/admin_user.sh",
+                "scripts/virtualbox/guest_additions.sh"
+                ],
+            "execute_command": "echo {{ user `user_password` }} | {{ .Vars }} sudo -E -S bash '{{ .Path }}'",
+            "environment_vars": [
+                "username={{ user `username` }}",
+                "public_key_url={{ user `public_key_url` }}"
+                ],
+            "only": ["virtualbox"]
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/common/clean.sh",
+                "scripts/common/network.sh",
+                "scripts/common/volume.sh"
+                ],
+            "execute_command": "echo {{ user `user_password` }} | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+        }
+    ],
+
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "keep_input_artifact": true,
+            "output": "{{ user `distribution` }}-{{ user `codename` }}-{{ user `release` }}-{{ user `architecture` }}-{{ .Provider }}.box",
+            "vagrantfile_template": "template.vagrant"
+        }
+    ]
+}
