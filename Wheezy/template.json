@@ -13,18 +13,20 @@
     "builders": [
         {
             "type": "virtualbox",
-            "iso_url": "http://cdimage.debian.org/cdimage/release/7.1.0/amd64/iso-cd/debian-7.1.0-amd64-netinst.iso",
-            "iso_checksum": "62232b8adc281c04f9985e4a1541481a468b3b2ca1702a0dd7f62fcf56ef101b",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/7.3.0/amd64/iso-cd/debian-7.3.0-amd64-netinst.iso",
+            "iso_checksum": "9e6cef96d6d9d3bb8ef254dde9dd5c1ba5667cc0207531c9ef0f1a6b9f3adb1d",
             "iso_checksum_type": "sha256",
             "ssh_username": "{{ user `username` }}",
 
+            "boot_wait": "30s",
             "boot_command": [
                 "<esc><wait>",
                 "auto url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
                 "<return>"
             ],
             "guest_os_type": "Debian_64",
-            "guest_additions_attach": true,
+            "guest_additions_mode": "upload",
+            "guest_additions_path": "/home/{{ user `username` }}/VBoxGuestAdditions.iso",
             "http_directory": "http",
             "hard_drive_interface": "sata",
             "headless": false,
@@ -104,7 +106,7 @@
             "type": "vagrant",
             "keep_input_artifact": true,
             "output": "{{ user `distribution` }}-{{ user `codename` }}-{{ user `release` }}-{{ user `architecture` }}-{{ .Provider }}.box",
-            "vagrantfile_template": "template.vagrant"
+            "vagrantfile_template": "./vagrantfile_template"
         }
     ]
 }
