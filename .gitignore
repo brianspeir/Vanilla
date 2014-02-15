@@ -1,6 +1,0 @@
-# Packer variables file. Protect your secrets.
-variables.json
-# Packer output file.
-output*
-# Built Vagrant boxes.
-*.box
