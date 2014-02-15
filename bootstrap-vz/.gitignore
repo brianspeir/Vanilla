@@ -1,4 +1,0 @@
-*.pyc
-# When developing for ec2 `vagrant provision' is quite handy
-Vagrantfile
-.vagrant
